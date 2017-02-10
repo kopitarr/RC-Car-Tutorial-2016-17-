@@ -1,0 +1,136 @@
+#include <Servo.h>
+Servo frontright;
+Servo frontleft;
+Servo backleft;
+Servo backright;
+
+#include <SoftwareSerial.h>
+SoftwareSerial BTSerial(0, 1); // RX, TX
+
+String readString;
+
+const int echoPin = 12;
+const int trigPin = 13;
+
+String confirmation() {
+  String check;
+  const int threshold = 4;
+  float distanceCentimeters;
+  int pulseLenMicroseconds;
+
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(20);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(100);
+  digitalWrite(trigPin, LOW);
+
+  pulseLenMicroseconds = pulseIn(echoPin, HIGH);
+
+  distanceCentimeters = pulseLenMicroseconds / 29.387 / 2;
+
+  if (distanceCentimeters <= threshold) {
+    check = "no";
+  }
+
+  else {
+    check = "yes";
+  };
+  return check;
+};
+
+
+void setup() {
+  BTSerial.begin(9600);
+  Serial.begin(9600);
+
+  frontright.attach(6);
+  frontleft.attach(11);
+  backleft.attach(10);
+  backright.attach(5);
+
+  pinMode(echoPin, INPUT);
+  pinMode(trigPin, OUTPUT);
+}
+
+void loop() {
+  String all = confirmation();
+  delay(200);
+
+  while (BTSerial.available()) { //or while if if does not work
+    delay(3);
+    char c = BTSerial.read();
+    readString += c;
+    Serial.println(readString);
+    if (all = "yes")
+    {
+      if (readString.length() > 0)
+      {
+        if (readString = "left")
+        {
+          goleft();
+        }
+        if (readString = "right")
+        {
+          goright();
+        }
+        if (readString = "forward")
+        {
+          goforward();
+        }
+        if (readString = "reverse")
+        {
+          goreverse();
+        }
+        if (readString = "zero");
+        {
+          gostop();
+        };
+
+
+      }
+      if (all = "no");
+      {
+        goreverse();
+        delay(500);
+        gostop();
+        delay(100);
+      };
+      readString = "";
+    };
+  }
+}
+
+void goleft() {
+  frontleft.write(255);
+  backleft.write(255);
+  frontright.write(0);
+  backright.write(0);
+
+};
+void goright() {
+  frontleft.write(0);
+  backleft.write(0);
+  frontright.write(255);
+  backright.write(255);
+};
+void goforward() {
+  frontleft.write(0);
+  backleft.write(0);
+  frontright.write(0);
+  backright.write(0);
+
+};
+void goreverse() {
+  frontleft.write(-255);
+  backleft.write(-255);
+  frontright.write(-255);
+  backright.write(-255);
+
+};
+void gostop() {
+  frontleft.write(0);
+  backleft.write(0);
+  frontright.write(0);
+  backright.write(0);
+};
+
